@@ -1,8 +1,8 @@
-%Premiss=[p, neg(p)].
+%Premiss=[q].
 
-%Goal='q'.
+%Goal='or(p,q)'.
 
-%Proof=[[1, neg(neg(and(p,q))),premise],[2, and(p,q),negnegel(1)],[3, q,andel2(2) ]].
+%Proof=[[1, q,premise],[2, or(p,q), orint2(1)]].
 
 valid_proof(Premiss, Goal, Proof):-
     valid_proof(Premiss, Goal, Proof, []).
@@ -52,8 +52,24 @@ valid_proof(Premiss,Goal, [[Row, CurProof, negnegel(Row1)]|Rest], ProofUntilNow)
     member([Row1, neg(neg(CurProof)),_], ProofUntilNow),!,
     append(ProofUntilNow, [[Row, CurProof, negnegel(Row1)]], NewProofUntilNow),
     valid_proof(Premiss, Goal, Rest, NewProofUntilNow).
+%andint   
+valid_proof(Premiss,Goal,[[Row, and(CurProof1, CurProof2), andint(Row1,Row2)]|Rest], ProofUntilNow):-
+    member([Row1, CurProof1, _], ProofUntilNow),!,
+    member([Row2, CurProof2, _], ProofUntilNow),!,
+    append(ProofUntilNow, [[Row, and(CurProof1, CurProof2), andint(Row1,Row2)]], NewProofUntilNow),
+    valid_proof(Premiss, Goal, Rest, NewProofUntilNow).
 
-    
+%orint1
+valid_proof(Premiss,Goal,[[Row, or(CurProof1, CurProof2), orint1(Row1)]|Rest], ProofUntilNow):-
+    member([Row1, CurProof1, _], ProofUntilNow),!,
+    append(ProofUntilNow, [[Row, or(CurProof1, CurProof2), orint1(Row1)]], NewProofUntilNow),
+    valid_proof(Premiss,Goal, Rest,NewProofUntilNow).
+
+%orint2
+valid_proof(Premiss,Goal,[[Row, or(CurProof1, CurProof2), orint2(Row1)]|Rest], ProofUntilNow):-
+    member([Row1, CurProof2, _], ProofUntilNow),!,
+    append(ProofUntilNow, [[Row, or(CurProof2, CurProof1), orint2(Row1)]], NewProofUntilNow),
+    valid_proof(Premiss,Goal, Rest,NewProofUntilNow).
 
 
 
