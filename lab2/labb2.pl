@@ -10,7 +10,13 @@ verify(InputFileName):-
     seen,
     valid_proof(Prems, Goal, Proof).
 
+%checks if goal exists at end of list. 
+goal_is_last(Goal, [[_,Goal,_]|[]]).
+goal_is_last(Goal, [Head|Tail]):-
+    goal_is_last(Goal, Tail).
+
 valid_proof(Premise, Goal, Proof):-
+    goal_is_last(Goal, Proof),
     valid_proof(Premise, Goal, Proof, []).
 
 %checks if list is empty.
