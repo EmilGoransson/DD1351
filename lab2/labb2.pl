@@ -102,6 +102,7 @@ valid_proof(Premise, Goal, [[Row, CurProof, copy(Row1)]|Rest], ProofUntilNow, As
     append(ProofUntilNow, [Row, CurProof, copy(Row1)], NewProofUntilNow),
     valid_proof(Premise, Goal, Rest, NewProofUntilNow, AssumptProof).
 
+%Assumption
 valid_proof(Premise, Goal, [[[Row, CurProof, assumption]|RestBox]|Rest2], ProofUntilNow, AssumptProof):-
     append(ProofUntilNow, [[Row, CurProof, assumption]], NewProofUntilNow),
     append(AssumptProof, [[Row, CurProof, assumption]|RestBox],NewAssumptProof),
@@ -115,13 +116,13 @@ valid_proof(Premise, Goal, [[[Row, CurProof, assumption]|RestBox]|Rest2], ProofU
 valid_proof(Premise, Goal, [[Row, imp(CurProof1, CurProof2), impint(Row1, Row2)]|Rest], ProofUntilNow, AssumptProof):-
     member([Row1, CurProof1, assumption], AssumptProof),!,
     member([Row2, CurProof2, _], AssumptProof),!,
-    append(ProofUntilNow, [Row, imp(CurProof1, CurProof2), impint(Row1, Row2)], NewProofUntilNow),
+    append(ProofUntilNow, [[Row, imp(CurProof1, CurProof2), impint(Row1, Row2)]], NewProofUntilNow),
     valid_proof(Premise, Goal, Rest, NewProofUntilNow, AssumptProof).
 %negint
 valid_proof(Premise, Goal, [[Row, neg(CurProof), negint(Row1, Row2)]|Rest], ProofUntilNow, AssumptProof):-
     member([Row1, CurProof, assumption], AssumptProof),!,
     member([Row2, cont, _], AssumptProof),!,
-    append(ProofUntilNow, [Row, neg(CurProof), negint(Row1, Row2)], NewProofUntilNow),
+    append(ProofUntilNow, [[Row, neg(CurProof), negint(Row1, Row2)]], NewProofUntilNow),
     valid_proof(Premise, Goal, Rest, NewProofUntilNow, AssumptProof).
 
 %orel
@@ -131,13 +132,13 @@ valid_proof(Premise, Goal, [[Row, CurProof, orel(Row1, Row2, Row3, Row4, Row5)]|
     member([Row3, CurProof, _], AssumptProof),!,
     member([Row4, AltProof2, assumption], AssumptProof),!,
     member([Row5, CurProof, _], AssumptProof),!,
-    append(ProofUntilNow, [Row, CurProof, orel(Row1, Row2, Row3, Row4, Row5)], NewProofUntilNow),
+    append(ProofUntilNow, [[Row, CurProof, orel(Row1, Row2, Row3, Row4, Row5)]], NewProofUntilNow),
     valid_proof(Premise, Goal, Rest, NewProofUntilNow, AssumptProof).
 %pbc
 valid_proof(Premise, Goal, [[Row, CurProof, pbc(Row1, Row2)]|Rest], ProofUntilNow, AssumptProof):-
     member([Row1, neg(CurProof), assumption], AssumptProof),!,
     member([Row2, cont, _], AssumptProof),!,
-    append(ProofUntilNow, [Row, CurProof, pbc(Row1, Row2)], NewProofUntilNow),
+    append(ProofUntilNow, [[Row, CurProof, pbc(Row1, Row2)]], NewProofUntilNow),
     valid_proof(Premise, Goal, Rest, NewProofUntilNow, AssumptProof).
 
 %[imp(p,q),neg(q)]
