@@ -1,8 +1,3 @@
-%Premise=[imp(p, q), p].
-
-%Goal='p'.
-
-%Proof=[[1, imp(p,q), premise],[2, p,        premise],[3, q,        impel(2,1)]].
 
 verify(InputFileName):-
     see(InputFileName),
@@ -12,97 +7,118 @@ verify(InputFileName):-
 
 %checks if goal exists at end of list. 
 goal_is_last(Goal, [[_,Goal,_]|[]]).
-goal_is_last(Goal, [Head|Tail]):-
+goal_is_last(Goal, [_|Tail]):-
     goal_is_last(Goal, Tail).
 
 valid_proof(Premise, Goal, Proof):-
     goal_is_last(Goal, Proof),
-    valid_proof(Premise, Goal, Proof, []).
+    valid_proof(Premise, Goal, Proof, [], []).
 
 %checks if list is empty.
 %Maybe add condition that checks if goal == last row?
-valid_proof(_,_,[],_).
+valid_proof(_,_,[],_,_).
 
 %premise
-valid_proof(Premise, Goal, [[Row, CurProof, premise]|Rest], ProofUntilNow):-
-    member(CurProof, Premise) ,
+valid_proof(Premise, Goal, [[Row, CurProof, premise]|Rest], ProofUntilNow, AssumptProof):-
+    member(CurProof, Premise),! ,
     append(ProofUntilNow,[[Row, CurProof, premise]], NewProofUntilNow),
-    valid_proof(Premise, Goal, Rest, NewProofUntilNow).
+    valid_proof(Premise, Goal, Rest, NewProofUntilNow, AssumptProof).
 
 %imp, impel, implication elimination
-valid_proof(Premise, Goal, [[Row, CurProof, impel(Row1,Row2)]|Rest], ProofUntilNow):-
-    member([Row1, AltProof,_], ProofUntilNow) ,
-    member([Row2, imp(AltProof,CurProof),_], ProofUntilNow) ,
+valid_proof(Premise, Goal, [[Row, CurProof, impel(Row1,Row2)]|Rest], ProofUntilNow, AssumptProof):-
+    member([Row1, AltProof,_], ProofUntilNow),! ,
+    member([Row2, imp(AltProof,CurProof),_], ProofUntilNow),! ,
     append(ProofUntilNow, [[Row, CurProof, impel(Row1, Row2)]], NewProofUntilNow),
-    valid_proof(Premise, Goal, Rest, NewProofUntilNow).
+    valid_proof(Premise, Goal, Rest, NewProofUntilNow, AssumptProof).
 
 %andel1
-valid_proof(Premise, Goal, [[Row, CurProof, andel1(Row1)]|Rest], ProofUntilNow):-
-    member([Row1, and(CurProof,_),_], ProofUntilNow) ,
+valid_proof(Premise, Goal, [[Row, CurProof, andel1(Row1)]|Rest], ProofUntilNow, AssumptProof):-
+    member([Row1, and(CurProof,_),_], ProofUntilNow),! ,
     append(ProofUntilNow, [[Row, CurProof, andel1(Row1)]], NewProofUntilNow),
-    valid_proof(Premise, Goal, Rest, NewProofUntilNow).
+    valid_proof(Premise, Goal, Rest, NewProofUntilNow, AssumptProof).
 
 %andel2
-valid_proof(Premise, Goal, [[Row, CurProof, andel2(Row1)]|Rest], ProofUntilNow):-
-    member([Row1, and(_,CurProof),_], ProofUntilNow) ,
+valid_proof(Premise, Goal, [[Row, CurProof, andel2(Row1)]|Rest], ProofUntilNow, AssumptProof):-
+    member([Row1, and(_,CurProof),_], ProofUntilNow),! ,
     append(ProofUntilNow, [[Row,CurProof,andel2(Row1)]], NewProofUntilNow),
-    valid_proof(Premise,Goal,Rest,NewProofUntilNow).
+    valid_proof(Premise,Goal,Rest,NewProofUntilNow, AssumptProof).
 
 %negel
-valid_proof(Premise,Goal, [[Row, CurProof, negel(Row1, Row2)]|Rest], ProofUntilNow):-
-    member([Row1, AltProof, _], ProofUntilNow) ,
-    member([Row2, neg(AltProof),_], ProofUntilNow) ,
+valid_proof(Premise,Goal, [[Row, CurProof, negel(Row1, Row2)]|Rest], ProofUntilNow, AssumptProof):-
+    member([Row1, AltProof, _], ProofUntilNow),! ,
+    member([Row2, neg(AltProof),_], ProofUntilNow),! ,
     append(ProofUntilNow, [[Row, CurProof, negel(Row1, Row2)]], NewProofUntilNow),
-    valid_proof(Premise, Goal, Rest, NewProofUntilNow).
+    valid_proof(Premise, Goal, Rest, NewProofUntilNow, AssumptProof).
 %contel
-valid_proof(Premise, Goal, [[Row, CurProof, contel(Row1)]|Rest], ProofUntilNow):-
-    member([Row1, cont, _], ProofUntilNow) ,
+valid_proof(Premise, Goal, [[Row, CurProof, contel(Row1)]|Rest], ProofUntilNow, AssumptProof):-
+    member([Row1, cont, _], ProofUntilNow),! ,
     append(ProofUntilNow, [[Row, CurProof, contel(Row1)]], NewProofUntilNow),
-    valid_proof(Premise,Goal,Rest,NewProofUntilNow).
+    valid_proof(Premise,Goal,Rest,NewProofUntilNow, AssumptProof).
 %negnegel
-valid_proof(Premise,Goal, [[Row, CurProof, negnegel(Row1)]|Rest], ProofUntilNow):-
-    member([Row1, neg(neg(CurProof)),_], ProofUntilNow) ,
+valid_proof(Premise,Goal, [[Row, CurProof, negnegel(Row1)]|Rest], ProofUntilNow, AssumptProof):-
+    member([Row1, neg(neg(CurProof)),_], ProofUntilNow),! ,
     append(ProofUntilNow, [[Row, CurProof, negnegel(Row1)]], NewProofUntilNow),
-    valid_proof(Premise, Goal, Rest, NewProofUntilNow).
+    valid_proof(Premise, Goal, Rest, NewProofUntilNow, AssumptProof).
 %andint   
-valid_proof(Premise,Goal,[[Row, and(CurProof1, CurProof2), andint(Row1,Row2)]|Rest], ProofUntilNow):-
-    member([Row1, CurProof1, _], ProofUntilNow) ,
-    member([Row2, CurProof2, _], ProofUntilNow) ,
+valid_proof(Premise,Goal,[[Row, and(CurProof1, CurProof2), andint(Row1,Row2)]|Rest], ProofUntilNow, AssumptProof):-
+    member([Row1, CurProof1, _], ProofUntilNow),! ,
+    member([Row2, CurProof2, _], ProofUntilNow),! ,
     append(ProofUntilNow, [[Row, and(CurProof1, CurProof2), andint(Row1,Row2)]], NewProofUntilNow),
-    valid_proof(Premise, Goal, Rest, NewProofUntilNow).
+    valid_proof(Premise, Goal, Rest, NewProofUntilNow, AssumptProof).
 
 %orint1
-valid_proof(Premise,Goal,[[Row, or(CurProof1, CurProof2), orint1(Row1)]|Rest], ProofUntilNow):-
-    member([Row1, CurProof1, _], ProofUntilNow) ,
+valid_proof(Premise,Goal,[[Row, or(CurProof1, CurProof2), orint1(Row1)]|Rest], ProofUntilNow, AssumptProof):-
+    member([Row1, CurProof1, _], ProofUntilNow),! ,
     append(ProofUntilNow, [[Row, or(CurProof1, CurProof2), orint1(Row1)]], NewProofUntilNow),
-    valid_proof(Premise,Goal, Rest,NewProofUntilNow).
+    valid_proof(Premise,Goal, Rest,NewProofUntilNow, AssumptProof).
 
 %orint2
-valid_proof(Premise,Goal,[[Row, or(CurProof1, CurProof2), orint2(Row1)]|Rest], ProofUntilNow):-
-    member([Row1, CurProof2, _], ProofUntilNow) ,
+valid_proof(Premise,Goal,[[Row, or(CurProof1, CurProof2), orint2(Row1)]|Rest], ProofUntilNow, AssumptProof):-
+    member([Row1, CurProof2, _], ProofUntilNow),! ,
     append(ProofUntilNow, [[Row, or(CurProof2, CurProof1), orint2(Row1)]], NewProofUntilNow),
-    valid_proof(Premise,Goal, Rest,NewProofUntilNow).
+    valid_proof(Premise,Goal, Rest,NewProofUntilNow, AssumptProof).
 
 %LEM
-valid_proof(Premise, Goal, [[Row, or(CurProof, neg(CurProof)), lem]|Rest], ProofUntilNow):-
+valid_proof(Premise, Goal, [[Row, or(CurProof, neg(CurProof)), lem]|Rest], ProofUntilNow, AssumptProof):-
     append(ProofUntilNow, [[Row, or(CurProof, neg(CurProof), lem)]], NewProofUntilNow),
-    valid_proof(Premise, Goal, Rest, NewProofUntilNow).
+    valid_proof(Premise, Goal, Rest, NewProofUntilNow, AssumptProof).
 
 %negnegint
-valid_proof(Premise,Goal, [[Row, neg(neg(CurProof)), negnegint(Row1)]|Rest], ProofUntilNow):-
-    member([Row1, CurProof, _], ProofUntilNow) ,
+valid_proof(Premise,Goal, [[Row, neg(neg(CurProof)), negnegint(Row1)]|Rest], ProofUntilNow, AssumptProof):-
+    member([Row1, CurProof, _], ProofUntilNow),! ,
     append(ProofUntilNow, [[Row, neg(neg(CurProof)), negnegint(Row1)]], NewProofUntilNow),
-    valid_proof(Premise, Goal, Rest, NewProofUntilNow).
+    valid_proof(Premise, Goal, Rest, NewProofUntilNow, AssumptProof).
 
 %MT
-valid_proof(Premise, Goal, [[Row, neg(CurProof), mt(Row1, Row2)]|Rest], ProofUntilNow):-
-    member([Row1, imp(CurProof, AltProof),_], ProofUntilNow) ,
-    member([Row2, neg(AltProof), _], ProofUntilNow) ,
+valid_proof(Premise, Goal, [[Row, neg(CurProof), mt(Row1, Row2)]|Rest], ProofUntilNow, AssumptProof):-
+    member([Row1, imp(CurProof, AltProof),_], ProofUntilNow),! ,
+    member([Row2, neg(AltProof), _], ProofUntilNow),! ,
     append(ProofUntilNow, [[Row, neg(CurProof), mt(Row1, Row2)]], NewProofUntilNow),
-    valid_proof(Premise, Goal, Rest, NewProofUntilNow).
+    valid_proof(Premise, Goal, Rest, NewProofUntilNow, AssumptProof).
 
 %Copy
-valid_proof(Premise, Goal, [[Row, CurProof, copy(Row1)]|Rest], ProofUntilNow):-
-    member([Row1, CurProof, _], ProofUntilNow),
+valid_proof(Premise, Goal, [[Row, CurProof, copy(Row1)]|Rest], ProofUntilNow, AssumptProof):-
+    member([Row1, CurProof, _], ProofUntilNow),!,
     append(ProofUntilNow, [Row, CurProof, copy(Row1)], NewProofUntilNow),
-    valid_proof(Premise, Goal, Rest, NewProofUntilNow).
+    valid_proof(Premise, Goal, Rest, NewProofUntilNow, AssumptProof).
+
+valid_proof(Premise, Goal, [[[Row, CurProof, assumption]|RestBox]|Rest2], ProofUntilNow, AssumptProof):-
+    append(ProofUntilNow, [[Row, CurProof, assumption]], NewProofUntilNow),
+    append(AssumptProof, [[Row, CurProof, assumption]|RestBox],NewAssumptProof),
+    %here we check so that the boxproof follows all the rules using reqursion,
+    %we treat it like a normal proof besides the fact that goal_is_last is ignored/3. 
+
+    valid_proof(Premise, [], RestBox, NewProofUntilNow, []),
+    valid_proof(Premise, Goal, Rest2, ProofUntilNow, NewAssumptProof).
+    
+valid_proof(Premise, Goal, [[Row, imp(CurProof1, CurProof2), impint(Row1, Row2)]|Rest], ProofUntilNow, AssumptProof):-
+    member([Row1, CurProof1, assumption], AssumptProof),!,
+    member([Row2, CurProof2, _], AssumptProof),!,
+    append(ProofUntilNow, [Row, imp(CurProof1, CurProof2), impint(Row1, Row2)], NewProofUntilNow),
+    valid_proof(Premise, Goal, Rest, NewProofUntilNow, AssumptProof).
+
+%[q]
+
+%imp(p,q)
+
+% [[1, q,premise],[[2, p,assumption],[3, q,copy(1)]],[4, imp(p,q), impint(2,3)]].
