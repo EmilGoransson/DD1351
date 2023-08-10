@@ -111,14 +111,37 @@ valid_proof(Premise, Goal, [[[Row, CurProof, assumption]|RestBox]|Rest2], ProofU
     valid_proof(Premise, [], RestBox, NewProofUntilNow, []),
     valid_proof(Premise, Goal, Rest2, ProofUntilNow, NewAssumptProof).
     
+%impint
 valid_proof(Premise, Goal, [[Row, imp(CurProof1, CurProof2), impint(Row1, Row2)]|Rest], ProofUntilNow, AssumptProof):-
     member([Row1, CurProof1, assumption], AssumptProof),!,
     member([Row2, CurProof2, _], AssumptProof),!,
     append(ProofUntilNow, [Row, imp(CurProof1, CurProof2), impint(Row1, Row2)], NewProofUntilNow),
     valid_proof(Premise, Goal, Rest, NewProofUntilNow, AssumptProof).
+%negint
+valid_proof(Premise, Goal, [[Row, neg(CurProof), negint(Row1, Row2)]|Rest], ProofUntilNow, AssumptProof):-
+    member([Row1, CurProof, assumption], AssumptProof),!,
+    member([Row2, cont, _], AssumptProof),!,
+    append(ProofUntilNow, [Row, neg(CurProof), negint(Row1, Row2)], NewProofUntilNow),
+    valid_proof(Premise, Goal, Rest, NewProofUntilNow, AssumptProof).
 
-%[q]
+%orel
+valid_proof(Premise, Goal, [[Row, CurProof, orel(Row1, Row2, Row3, Row4, Row5)]|Rest], ProofUntilNow, AssumptProof):-
+    member([Row1, or(AltProof1, AltProof2), _], ProofUntilNow),!,
+    member([Row2, AltProof1, assumption], AssumptProof),!,
+    member([Row3, CurProof, _], AssumptProof),!,
+    member([Row4, AltProof2, assumption], AssumptProof),!,
+    member([Row5, CurProof, _], AssumptProof),!,
+    append(ProofUntilNow, [Row, CurProof, orel(Row1, Row2, Row3, Row4, Row5)], NewProofUntilNow),
+    valid_proof(Premise, Goal, Rest, NewProofUntilNow, AssumptProof).
+%pbc
+valid_proof(Premise, Goal, [[Row, CurProof, pbc(Row1, Row2)]|Rest], ProofUntilNow, AssumptProof):-
+    member([Row1, neg(CurProof), assumption], AssumptProof),!,
+    member([Row2, cont, _], AssumptProof),!,
+    append(ProofUntilNow, [Row, CurProof, pbc(Row1, Row2)], NewProofUntilNow),
+    valid_proof(Premise, Goal, Rest, NewProofUntilNow, AssumptProof).
 
-%imp(p,q)
+%[imp(p,q),neg(q)]
 
-% [[1, q,premise],[[2, p,assumption],[3, q,copy(1)]],[4, imp(p,q), impint(2,3)]].
+%neg(p)
+
+% [[1, or(p,q),premise],[2, imp(p,r),   premise],[3, imp(q,r),premise],[[4, p,assumption],[5, r,impel(4,2)]],[[6, q,assumption],[7, r,impel(6,3)]],[8, r,          orel(1,4,5,6,7)]].
