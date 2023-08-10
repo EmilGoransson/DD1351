@@ -1,4 +1,3 @@
-
 verify(InputFileName):-
     see(InputFileName),
     read(Prems), read(Goal), read(Proof),
@@ -140,9 +139,3 @@ valid_proof(Premise, Goal, [[Row, CurProof, pbc(Row1, Row2)]|Rest], ProofUntilNo
     member([Row2, cont, _], AssumptProof),!,
     append(ProofUntilNow, [[Row, CurProof, pbc(Row1, Row2)]], NewProofUntilNow),
     valid_proof(Premise, Goal, Rest, NewProofUntilNow, AssumptProof).
-
-%[imp(p,q),neg(q)]
-
-%neg(p)
-
-% [[1, or(p,q),premise],[2, imp(p,r),   premise],[3, imp(q,r),premise],[[4, p,assumption],[5, r,impel(4,2)]],[[6, q,assumption],[7, r,impel(6,3)]],[8, r,          orel(1,4,5,6,7)]].
