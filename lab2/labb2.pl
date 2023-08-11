@@ -10,8 +10,7 @@ goal_is_last(Goal, [_|Tail]):-
     goal_is_last(Goal, Tail).
 
 valid_proof(Premise, Goal, Proof):-
-    %goal_is_last(Goal, Proof),
-    last(Proof, [_, Goal, _]),
+    goal_is_last(Goal, Proof),
     valid_proof(Premise, Goal, Proof, [], []).
 
 %checks if list is empty.
