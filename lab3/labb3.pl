@@ -38,7 +38,9 @@ check(T, L, S, [], ax(F)):-
     check_all_states(T, L, Paths, [], F).
 % EX
 check(T, L, S, [], ex(F)):-
-    write('EX').
+    write('EX'),
+    member([S, Paths], T),
+    check_all_atleast_one_states(T, L, Paths, [], F).
 % AG
 % EG
 % EF
@@ -48,3 +50,8 @@ check_all_states(_, _, [], _, _).
 check_all_states(T, L, [CurPath|Rest], U, F):-
     check(T, L, CurPath, [], F),
     check_all_states(T, L, Rest, U, F).
+
+check_all_atleast_one_states(_, _, [],_, _):-
+    fail.
+check_all_atleast_one_states(T, L, [CurPath|Rest], U, F):-
+    check(T, L, CurPath, [], F) ; check_all_states(T, L, Rest, U, F).
