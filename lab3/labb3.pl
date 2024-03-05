@@ -44,26 +44,26 @@ check(T, L, S, [], ax(F)):-
 check(T, L, S, [], ex(F)):-
     member([S, Paths], T),
     check_all_atleast_one_states(T, L, Paths, [], F).
+
+
 % AG1
-check(T, L, S, U, ag(F)):-
+check(_, _, S, U, ag(_)):-
     member(S, U).
 %AG2
-checkG(T, L, S, U, F):-
+check(T, L, S, U, ag(F)):-
     \+member(S,U),
     check(T, L, S, [], F),
-    member([S, Paths], T).
-%
-check(T, L, S, U, ag(F)):-
-    checkG(T, L, S, U, F),
+    member([S, Paths], T),
     check_all_states(T, L, Paths, [S|U], ag(F)).
 % EG1 Basecase
-check(T, L, S, U, eg(F)):-
+check(_, _, S, U, eg(_)):-
     member(S, U).
 
 % EG2, Same as AG2 just at least one state
 check(T, L, S, U, eg(F)):-
-    checkG(T, L, S, U, F),
-
+    \+member(S,U),
+    check(T, L, S, [], F),
+    member([S, Paths], T),
     check_all_atleast_one_states(T, L, Paths, [S|U], eg(F)).
 
 % EF1
@@ -82,11 +82,11 @@ check(T, L, S, [], af(F)).
 
 check_all_states(_, _, [], _, _).
 check_all_states(T, L, [CurPath|Rest], U, F):-
-    check(T, L, CurPath, [], F),
+    check(T, L, CurPath, U, F),
     check_all_states(T, L, Rest, U, F).
 
 check_all_atleast_one_states(T, L, [CurPath|Rest], U, F):-
     (
-        check(T, L, CurPath, [], F) 
+        check(T, L, CurPath, U, F) 
     ;   check_all_atleast_one_states(T, L, Rest, U, F)
     ).
