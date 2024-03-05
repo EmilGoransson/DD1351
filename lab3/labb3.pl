@@ -11,40 +11,74 @@
 % U
 % To execute: consult('your_file.pl'). verify('input.txt').
 % Literals
+% Load model, initial state and formula from file.
+verify(Input) :-
+    see(Input), read(T), read(L), read(S), read(F), seen,
+    check(T, L, S, [], F).
+    
+
 check(_, L, S, [], F):-
-    write('first'),
     member([S, LabelState], L),
     member(F, LabelState).
 
 check(_, L, S, [], neg(F)):-
-    write('neg'),
     member([S, LabelState], L),
     \+member(F, LabelState).  
 % And
 check(T, L, S, [], and(F,G)):-
-    write('and'),
     check(T, L, S, [], F),
     check(T, L, S, [], G).
 % Or
 check(T, L, S, [], or(F,G)):-
-    write('or'),
-    check(T, L, S, [], F) ; check(T, L, S, [], G).
+    (
+        check(T, L, S, [], F) 
+    ;   check(T, L, S, [], G)
+    ).
 % AX - All Next state
 check(T, L, S, [], ax(F)):-
-    write('AX'),
     %gets connected paths
     member([S, Paths], T),
     %checks all elements in Paths list
     check_all_states(T, L, Paths, [], F).
 % EX
 check(T, L, S, [], ex(F)):-
-    write('EX'),
     member([S, Paths], T),
     check_all_atleast_one_states(T, L, Paths, [], F).
-% AG
-% EG
-% EF
-% AF
+% AG1
+check(T, L, S, U, ag(F)):-
+    member(S, U).
+%AG2
+checkG(T, L, S, U, F):-
+    \+member(S,U),
+    check(T, L, S, [], F),
+    member([S, Paths], T).
+%
+check(T, L, S, U, ag(F)):-
+    checkG(T, L, S, U, F),
+    check_all_states(T, L, Paths, [S|U], ag(F)).
+% EG1 Basecase
+check(T, L, S, U, eg(F)):-
+    member(S, U).
+
+% EG2, Same as AG2 just at least one state
+check(T, L, S, U, eg(F)):-
+    checkG(T, L, S, U, F),
+
+    check_all_atleast_one_states(T, L, Paths, [S|U], eg(F)).
+
+% EF1
+check(T, L, S, [], ef(F)).
+
+% EF2
+check(T, L, S, [], ef(F)).
+
+
+% AF1
+check(T, L, S, [], af(F)).
+
+% AF2
+check(T, L, S, [], af(F)).
+
 
 check_all_states(_, _, [], _, _).
 check_all_states(T, L, [CurPath|Rest], U, F):-
@@ -52,4 +86,7 @@ check_all_states(T, L, [CurPath|Rest], U, F):-
     check_all_states(T, L, Rest, U, F).
 
 check_all_atleast_one_states(T, L, [CurPath|Rest], U, F):-
-    check(T, L, CurPath, [], F) ; check_all_atleast_one_states(T, L, Rest, U, F).
+    (
+        check(T, L, CurPath, [], F) 
+    ;   check_all_atleast_one_states(T, L, Rest, U, F)
+    ).
