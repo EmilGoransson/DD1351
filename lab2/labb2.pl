@@ -19,13 +19,13 @@ valid_proof(_,_,[],_,_).
 
 %premise
 valid_proof(Premise, Goal, [[Row, CurProof, premise]|Rest], ProofUntilNow, AssumptProof):-
-    member(CurProof, Premise)  ,
+    member(CurProof, Premise),
     append(ProofUntilNow,[[Row, CurProof, premise]], NewProofUntilNow),
     valid_proof(Premise, Goal, Rest, NewProofUntilNow, AssumptProof).
 
 %imp, impel, implication elimination
 valid_proof(Premise, Goal, [[Row, CurProof, impel(Row1,Row2)]|Rest], ProofUntilNow, AssumptProof):-
-    member([Row1, AltProof,_], ProofUntilNow)  ,
+    member([Row1, AltProof,_], ProofUntilNow) ,
     member([Row2, imp(AltProof,CurProof),_], ProofUntilNow)  ,
     append(ProofUntilNow, [[Row, CurProof, impel(Row1, Row2)]], NewProofUntilNow),
     valid_proof(Premise, Goal, Rest, NewProofUntilNow, AssumptProof).
@@ -139,3 +139,45 @@ valid_proof(Premise, Goal, [[Row, CurProof, pbc(Row1, Row2)]|Rest], ProofUntilNo
     member([Row2, cont, _], AssumptProof) ,
     append(ProofUntilNow, [[Row, CurProof, pbc(Row1, Row2)]], NewProofUntilNow),
     valid_proof(Premise, Goal, Rest, NewProofUntilNow, AssumptProof).
+
+/* VALID NON TRIVIAL PROOF WRITTEN FORMAT
+PREMISE:
+GOAL:
+PROOF:
+
+[r,imp(p, and(r,q))].
+imp(p,and(q,r)).
+[
+    [1, r,                premise],
+    [2, imp(p, and(r,q)), premise],
+    [
+      [3, p,      assumption],
+      [4, and(r,q),  impel(3,2)]
+      [5, q,      andel2(4)]
+      [6, r,      andel1(4)]
+      [7, and(q,r),      andint(5,6)]
+    ],
+    [8, imp(p,and(q,r)), impint(3,7)]
+].
+*/
+
+/* INVALID NON TRIVIAL PROOF WRITTEN FORMAT
+PREMISE:
+GOAL:
+PROOF:
+
+[r,imp(p, imp(r,q))].
+imp(p,imp(q,r)).
+[
+    [1, r,                premise],
+    [2, imp(p, imp(r,q)), premise],
+    [
+      [3, p,      assumption],
+      [4, imp(r,q),  impel(3,2)]
+      [5, q,      impel(4,1)]
+      [6, and(q,r),      andint(5,1)]
+    ],
+    [7, imp(p,and(q,r)), impint(3,6)]
+].
+*/
+
