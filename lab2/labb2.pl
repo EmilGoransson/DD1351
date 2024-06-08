@@ -9,6 +9,10 @@ goal_is_last(Goal, [[_,Goal,_]|[]]).
 goal_is_last(Goal, [_|Tail]):-
     goal_is_last(Goal, Tail).
 
+%https://stackoverflow.com/questions/21694499/prolog-checking-if-something-is-the-last-item-in-the-list
+last(X,[X]).
+last(X,[_|Z]) :- last(X,Z).
+
 valid_proof(Premise, Goal, Proof):-
     goal_is_last(Goal, Proof),
     valid_proof(Premise, Goal, Proof, [], []).
@@ -74,7 +78,7 @@ valid_proof(Premise,Goal,[[Row, or(CurProof1, CurProof2), orint1(Row1)]|Rest], P
 %orint2
 valid_proof(Premise,Goal,[[Row, or(CurProof1, CurProof2), orint2(Row1)]|Rest], ProofUntilNow, AssumptProof):-
     member([Row1, CurProof2, _], ProofUntilNow)  ,
-    append(ProofUntilNow, [[Row, or(CurProof2, CurProof1), orint2(Row1)]], NewProofUntilNow),
+    append(ProofUntilNow, [[Row, or(CurProof1, CurProof2), orint2(Row1)]], NewProofUntilNow),
     valid_proof(Premise,Goal, Rest,NewProofUntilNow, AssumptProof).
 
 %LEM
@@ -97,11 +101,12 @@ valid_proof(Premise, Goal, [[Row, neg(CurProof), mt(Row1, Row2)]|Rest], ProofUnt
 
 %Copy
 valid_proof(Premise, Goal, [[Row, CurProof, copy(Row1)]|Rest], ProofUntilNow, AssumptProof):-
-    member([Row1, CurProof, _], ProofUntilNow) ,
+    member([Row1, CurProof, _], ProofUntilNow),
     append(ProofUntilNow, [Row, CurProof, copy(Row1)], NewProofUntilNow),
     valid_proof(Premise, Goal, Rest, NewProofUntilNow, AssumptProof).
 
 %Assumption
+
 valid_proof(Premise, Goal, [[[Row, CurProof, assumption]|RestBox]|Rest2], ProofUntilNow, AssumptProof):-
     append(ProofUntilNow, [[Row, CurProof, assumption]], NewProofUntilNow),
     append(AssumptProof, [[Row, CurProof, assumption]|RestBox],NewAssumptProof),
@@ -110,11 +115,12 @@ valid_proof(Premise, Goal, [[[Row, CurProof, assumption]|RestBox]|Rest2], ProofU
 
     valid_proof(Premise, [], RestBox, NewProofUntilNow, []),
     valid_proof(Premise, Goal, Rest2, ProofUntilNow, NewAssumptProof).
-    
+
 %impint
 valid_proof(Premise, Goal, [[Row, imp(CurProof1, CurProof2), impint(Row1, Row2)]|Rest], ProofUntilNow, AssumptProof):-
-    member([Row1, CurProof1, assumption], AssumptProof) ,
-    member([Row2, CurProof2, _], AssumptProof) ,
+    member([Row1, CurProof1, assumption], AssumptProof),
+    member([Row2, CurProof2, Label], AssumptProof),
+    last([Row2, CurProof2,Label], AssumptProof),
     append(ProofUntilNow, [[Row, imp(CurProof1, CurProof2), impint(Row1, Row2)]], NewProofUntilNow),
     valid_proof(Premise, Goal, Rest, NewProofUntilNow, AssumptProof).
 %negint
@@ -159,6 +165,10 @@ imp(p,and(q,r)).
     ],
     [8, imp(p,and(q,r)), impint(3,7)]
 ].
+
+one line: 
+[[1, r, premise], [2, imp(p, and(r, q)), premise], [[3, p, assumption], [4, and(r, q), impel(3, 2)], [5, q, andel2(4)], [6, r, andel1(4)], [7, and(q, r), andint(5, 6)]], [8, imp(p, and(q, r)), impint(3, 7)]]
+
 */
 
 /* INVALID NON TRIVIAL PROOF WRITTEN FORMAT
@@ -173,11 +183,15 @@ imp(p,imp(q,r)).
     [2, imp(p, imp(r,q)), premise],
     [
       [3, p,      assumption],
-      [4, imp(r,q),  impel(3,2)]
+      [4, imp(r,p),  impel(3,2)]
       [5, q,      impel(4,1)]
       [6, and(q,r),      andint(5,1)]
     ],
     [7, imp(p,and(q,r)), impint(3,6)]
 ].
+
+one line: 
+[[1, r, premise], [2, imp(p, imp(r, q)), premise], [[3, p, assumption], [4, imp(r, p), impel(3, 2)], [5, q, impel(4, 1)], [6, and(q, r), andint(5, 1)]], [7, imp(p, and(q, r)), impint(3, 6)]]
+
 */
 

@@ -21,6 +21,7 @@ check(_, L, S, [], F):-
     member([S, LabelState], L),
     member(F, LabelState).
 
+%Not/neg
 check(_, L, S, [], neg(F)):-
     member([S, LabelState], L),
     \+member(F, LabelState).  
@@ -66,19 +67,27 @@ check(T, L, S, U, eg(F)):-
     member([S, Paths], T),
     check_all_atleast_one_states(T, L, Paths, [S|U], eg(F)).
 
-% EF1
-check(T, L, S, [], ef(F)).
+% EF1, basecase ish
+check(T, L, S, U, ef(F)):-
+    \+member(S,U),
+    check(T,L,S,[], F).
 
 % EF2
-check(T, L, S, [], ef(F)).
-
+check(T, L, S, U, ef(F)):-
+    \+member(S,U),
+    member([S, Paths], T),
+    check_all_atleast_one_states(T, L, Paths, [S|U], ef(F)).
 
 % AF1
-check(T, L, S, [], af(F)).
+check(T, L, S, U, af(F)):-
+    \+member(S,U),
+    check(T,L,S,[], F).
 
 % AF2
-check(T, L, S, [], af(F)).
-
+check(T, L, S, U, af(F)):-
+    \+member(S,U),
+    member([S, Paths], T),
+    check_all_states(T, L, Paths, [S|U], af(F)).
 
 check_all_states(_, _, [], _, _).
 check_all_states(T, L, [CurPath|Rest], U, F):-
