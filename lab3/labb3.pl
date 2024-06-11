@@ -16,15 +16,17 @@ verify(Input) :-
     see(Input), read(T), read(L), read(S), read(F), seen,
     check(T, L, S, [], F).
     
-
+%base case, checks if F is true in state S, (initial check that will fail unless its a SINGLE variable & it holds true)
 check(_, L, S, [], F):-
-    member([S, LabelState], L),
+    member([S, LabelState], L), % Fetches LabelState (list of lables from states (p, r) ex.)
     member(F, LabelState).
+
 
 %Not/neg
 check(_, L, S, [], neg(F)):-
     member([S, LabelState], L),
-    \+member(F, LabelState).  
+    \+member(F, LabelState).
+
 % And
 check(T, L, S, [], and(F,G)):-
     check(T, L, S, [], F),
@@ -47,7 +49,7 @@ check(T, L, S, [], ex(F)):-
     check_all_atleast_one_states(T, L, Paths, [], F).
 
 
-% AG1
+% AG1 (loop = success)
 check(_, _, S, U, ag(_)):-
     member(S, U).
 %AG2
@@ -56,7 +58,7 @@ check(T, L, S, U, ag(F)):-
     check(T, L, S, [], F),
     member([S, Paths], T),
     check_all_states(T, L, Paths, [S|U], ag(F)).
-% EG1 Basecase
+% EG1 Basecase (loop = success)
 check(_, _, S, U, eg(_)):-
     member(S, U).
 
@@ -67,7 +69,7 @@ check(T, L, S, U, eg(F)):-
     member([S, Paths], T),
     check_all_atleast_one_states(T, L, Paths, [S|U], eg(F)).
 
-% EF1, basecase ish
+% EF1, basecase ish (loop = fail)
 check(T, L, S, U, ef(F)):-
     \+member(S,U),
     check(T,L,S,[], F).
